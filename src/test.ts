@@ -6,11 +6,9 @@ const api = new BaiduFanyiAPI();
 
 async function main() {
   await api.init();
-  const data = await api.getTTS('我的', 'zh', 3);
-
-  const steam = createWriteStream(join(__dirname, '../test.mp3'));
+  const steam = createWriteStream(join(__dirname, '../tts.mp3'));
+  const data = await api.getTTS('你好！，我是一个机器人。', 'zh');
   data.pipe(steam);
-
 }
 
 
