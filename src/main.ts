@@ -1,7 +1,7 @@
-import fetch from './fetch';
 import FormData from 'form-data';
 import { ReadStream } from 'fs';
 import { SignGenerater } from './baidu-sign-generater';
+import axios, { AxiosInstance } from 'axios';
 
 /**
  * 百度翻译破解版,请勿公开使用
@@ -17,6 +17,8 @@ export class BaiduFanyiAPI {
   private token: string;
   private baiduID: string;
 
+  private httpClient: AxiosInstance;
+
   /**
    * 初始化方法,
    * 所有后续请求必须在初始化之后调用
@@ -25,6 +27,21 @@ export class BaiduFanyiAPI {
    * @date 2019-12-21
    */
   public async init() {
+    this.httpClient = axios.create({
+      baseURL: 'https://fanyi.baidu.com',
+      headers: {
+        'dnt': 1,
+        'origin': 'https://fanyi.baidu.com',
+        'referer': 'https://fanyi.baidu.com/',
+        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+        'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.79 Safari/537.36',
+        'cache-control': 'no-cache',
+        'accept-encoding': 'gzip, deflate, br',
+        'accept-language': 'zh-CN,zh;q=0.9,zh-TW;q=0.8,en-US;q=0.7,en;q=0.6',
+      },
+      timeout: 5000,
+    });
+
     await this.downloadHTMLPage();
   }
 
@@ -36,16 +53,15 @@ export class BaiduFanyiAPI {
    * @param {string} input
    * @returns
    */
-  public async suggest(input: string) {
-    const response = await fetch(`https://fanyi.baidu.com/sug`, {
-      body: `kw=${ global.encodeURIComponent(input) }`,
-      method: 'post',
+  public async suggest(input: string): Promise<{ errno: number, data: Array<{ k: string, v: string }> }> {
+    const response = await this.httpClient.post(`/sug`, `kw=${ global.encodeURIComponent(input) }`, {
       headers: {
-        cookie: this.getCookie(),
+        'cookie': this.getCookie(),
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
       },
+      responseType: 'json',
     });
-    return await response.json();
+    return response.data;
   }
 
   /**
@@ -56,16 +72,15 @@ export class BaiduFanyiAPI {
    * @param {string} input
    * @returns
    */
-  public async langdetect(input: string) {
-    const response = await fetch(`https://fanyi.baidu.com/langdetect`, {
-      body: `query=${ global.encodeURIComponent(input) }`,
-      method: 'post',
+  public async langdetect(input: string): Promise<{ error: number, msg: string, lan: string }> {
+    const response = await this.httpClient.post(`/langdetect`, `query=${ global.encodeURIComponent(input) }`, {
       headers: {
-        cookie: this.getCookie(),
+        'cookie': this.getCookie(),
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
       },
+      responseType: 'json',
     });
-    return await response.json();
+    return response.data;
   }
 
   /**
@@ -80,14 +95,14 @@ export class BaiduFanyiAPI {
    */
   public async translate(input: string, from: string, to: string) {
     const data = `from=${ from }&to=${ to }&query=${ input }&transtype=realtime&simple_means_flag=3&sign=${ SignGenerater.generate(input, this.gtk) }&token=${ this.token }`;
-    const response = await fetch(`https://fanyi.baidu.com/v2transapi`, {
-      body: global.encodeURI(data),
-      method: 'post',
+    const response = await this.httpClient.post(`/v2transapi`, global.encodeURI(data), {
       headers: {
+        'cookie': this.getCookie(),
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
       },
+      responseType: 'json',
     });
-    return await response.json();
+    return response.data;
   }
 
   /**
@@ -101,8 +116,19 @@ export class BaiduFanyiAPI {
    * @returns
    */
   public async getTTS(input: string, lang: string, speed: number=3) {
-    const response = await fetch(`https://fanyi.baidu.com/gettts?lan=${ lang }&spd=${ speed }&text=${ global.encodeURIComponent(input) }&source=web`);
-    return response.body;
+    const response = await this.httpClient.get(`gettts`, {
+      params: {
+        lan: `${ lang }`,
+        spd: `${ speed }`,
+        text: `${ global.encodeURIComponent(input) }`,
+        source: 'web',
+      },
+      headers: {
+        'cookie': this.getCookie(),
+      },
+      responseType: 'stream',
+    });
+    return response.data;
   }
 
   /**
@@ -115,19 +141,20 @@ export class BaiduFanyiAPI {
    * @param {string} to             目标语种
    * @returns
    */
-  public async getOCR(image: ReadStream, from: string='auto', to: string) {
+  public async getOCR(image: ReadStream, from: string='auto', to: string): Promise<{ errno: number, data: { from: string, src: Array<string>, to: string } }> {
     const data = new FormData();
     data.append('to', to)
     data.append('from', from)
     data.append('image', image)
-    const response = await fetch(`https://fanyi.baidu.com/getocr`, {
-      method: 'post',
+
+    const response = await this.httpClient.post(`/getocr`, data, {
       headers: {
+        ...data.getHeaders(),
         cookie: this.getCookie(),
       },
-      body: data,
+      responseType: 'json',
     });
-    return await response.json();
+    return response.data;
   }
 
   /**
@@ -138,25 +165,23 @@ export class BaiduFanyiAPI {
    * @private
    */
   private async downloadHTMLPage() {
-    // 首次请求token无效
-    let response = await fetch('https://fanyi.baidu.com', {
-      method: 'get',
+    let response = await this.httpClient.get<string>('/', {
+      responseType: 'text',
       headers: {
         cookie: this.getCookie(),
       },
     });
     const headers = response.headers;
-    // bugs: headers.get('set-cookie')的格式与parseResponseCookies不匹配
-    const cookies = this.parseResponseCookies([headers.get('set-cookie')]);
+    const cookies = this.parseResponseCookies(headers['set-cookie']);
     this.baiduID = cookies.get('BAIDUID').value;
 
-    response = await fetch('https://fanyi.baidu.com', {
-      method: 'get',
+    response = await this.httpClient.get<string>('/', {
+      responseType: 'text',
       headers: {
         cookie: this.getCookie(),
       },
     });
-    this.html = await response.text();
+    this.html = response.data;
     this.gtk = this.html.match(/window.gtk\s*=\s*'(?<gtk>.+)'/).groups.gtk;
     this.token = this.html.match(/token:\s*'(?<token>.+)',/).groups.token;
   }

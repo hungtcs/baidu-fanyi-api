@@ -1,8 +1,6 @@
 百度翻译API
 ====
 
-**请勿公开使用！**
-
 ### 使用方式
 ```typescript
 import { BaiduFanyiAPI } from './main';
