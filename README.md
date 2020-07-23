@@ -3,6 +3,8 @@
 
 __本项目仅供学习参考__
 
+[![Build](https://github.com/hungtcs/baidu-fanyi-api/workflows/Build/badge.svg)](https://github.com/hungtcs/baidu-fanyi-api/actions)
+
 ### 使用方式
 ```typescript
 import { BaiduFanyiAPI } from './main';

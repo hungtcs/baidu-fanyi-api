@@ -5,7 +5,7 @@ import { fromStream } from 'file-type';
 import { BaiduFanyiAPI } from '../src/main';
 
 describe('百度翻译API测试', function() {
-  this.timeout(5000);
+  this.timeout(30000);
 
   let api: BaiduFanyiAPI;
 
