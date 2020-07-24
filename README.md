@@ -4,6 +4,7 @@
 __本项目仅供学习参考__
 
 [![Build](https://github.com/hungtcs/baidu-fanyi-api/workflows/Build/badge.svg)](https://github.com/hungtcs/baidu-fanyi-api/actions)
+[![NPM Version](https://badge.fury.io/js/baidu-fanyi-api.svg)](https://badge.fury.io/js/baidu-fanyi-api)
 
 ### 使用方式
 ```typescript
