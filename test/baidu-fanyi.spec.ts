@@ -14,6 +14,10 @@ describe('百度翻译API测试', function() {
     await api.init();
   });
 
+  it('初始化标志', async() => {
+    assert.equal(api.inited, true);
+  });
+
   it('输入建议', async () => {
     const { errno, data } = await api.suggest('你');
     assert.equal(errno, 0);

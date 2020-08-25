@@ -7,19 +7,24 @@ __本项目仅供学习参考__
 [![NPM Version](https://badge.fury.io/js/baidu-fanyi-api.svg)](https://badge.fury.io/js/baidu-fanyi-api)
 
 ### 使用方式
-```typescript
-import { BaiduFanyiAPI } from './main';
+1. 通过npm安装`baidu-fanyi-api`
+    ```shell
+    npm i baidu-fanyi-api
+    ```
+2. 导入`BaiduFanyiAPI`
+    ```typescript
+    import { BaiduFanyiAPI } from 'baidu-fanyi-api';
 
-const api = new BaiduFanyiAPI();
+    const api = new BaiduFanyiAPI();
 
-async function main() {
-  await api.init();
-  const data = await api.translate('我的', 'zh', 'en');
-  console.log(data);
-}
+    async function main() {
+      await api.init();
+      const data = await api.translate('我的', 'zh', 'en');
+      console.log(data);
+    }
 
-main();
-```
+    main();
+    ```
 
 ### 功能概述
 _所有操作必须在init之后执行_

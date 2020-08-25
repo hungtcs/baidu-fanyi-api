@@ -1,6 +1,6 @@
 {
   "name": "baidu-fanyi-api",
-  "version": "0.0.2",
+  "version": "0.0.3-0",
   "description": "百度翻译API",
   "main": "dist/main.js",
   "scripts": {
