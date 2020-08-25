@@ -20,6 +20,14 @@ export class BaiduFanyiAPI {
   private httpClient: AxiosInstance;
 
   /**
+   * 初始化之后为 `true`
+   *
+   * @type {boolean}
+   * @memberof BaiduFanyiAPI
+   */
+  public inited: boolean = false;
+
+  /**
    * 初始化方法,
    * 所有后续请求必须在初始化之后调用
    *
@@ -43,6 +51,8 @@ export class BaiduFanyiAPI {
     });
 
     await this.downloadHTMLPage();
+
+    this.inited = true;
   }
 
   /**
